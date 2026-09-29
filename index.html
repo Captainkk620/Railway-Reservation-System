@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Railway Reservation System</title>
+    <style>
+        /* CSS Styling */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; color: #333; }
+        
+        /* Navigation */
+        nav { background-color: #003366; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        nav h1 { font-size: 24px; }
+        nav div button { background: none; border: none; color: white; margin-left: 20px; font-size: 16px; cursor: pointer; }
+        nav div button:hover { text-decoration: underline; }
+
+        /* Page Layout */
+        .page { display: none; padding: 40px; max-width: 1000px; margin: 0 auto; }
+        .active-page { display: block; }
+        
+        /* Cards & Forms */
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card h2 { color: #003366; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { background-color: #00509e; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
+        .btn:hover { background-color: #003366; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; }
+        th { background-color: #003366; color: white; }
+        .book-btn { background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+        .book-btn:hover { background-color: #218838; }
+
+        /* Alerts */
+        .alert { padding: 15px; margin-bottom: 20px; border-radius: 4px; display: none; }
+        .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <h1>🚆 Indian Railways</h1>
+        <div>
+            <button onclick="showPage('home-page')">Home</button>
+            <button onclick="showPage('search-page')">Search Trains</button>
+            <button onclick="showPage('my-bookings-page')">My Bookings</button>
+            <button onclick="showPage('admin-page')">Admin</button>
+        </div>
+    </nav>
+
+    <!-- 1. Home Page -->
+    <div id="home-page" class="page active-page">
+        <div class="card" style="text-align: center; padding: 60px 20px;">
+            <h1 style="font-size: 36px; color: #003366; margin-bottom: 20px;">Welcome to Railway Reservation System</h1>
+            <p style="font-size: 18px; margin-bottom: 30px;">Book your train tickets easily and securely.</p>
+            <button class="btn" style="width: auto;" onclick="showPage('search-page')">Book a Ticket Now</button>
+        </div>
+    </div>
+
+    <!-- 2. Search Trains Page -->
+    <div id="search-page" class="page">
+        <div class="card">
+            <h2>Search Trains</h2>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>From Station</label>
+                    <input type="text" id="source" placeholder="e.g. Delhi">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>To Station</label>
+                    <input type="text" id="dest" placeholder="e.g. Mumbai">
+                </div>
+            </div>
+            <button class="btn" onclick="searchTrains()">Search</button>
+        </div>
+
+        <div class="card" id="search-results-card" style="display: none;">
+            <h2>Available Trains</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Train No</th>
+                        <th>Name</th>
+                        <th>Departure</th>
+                        <th>Seats</th>
+                        <th>Fare</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="train-results">
+                    <!-- Results injected here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 3. Booking Page -->
+    <div id="booking-page" class="page">
+        <div class="card">
+            <h2>Passenger Details</h2>
+            <div id="booking-alert" class="alert alert-success">Ticket Booked Successfully! PNR: <span id="pnr-display"></span></div>
+            
+            <h3 id="booking-train-name" style="margin-bottom: 15px; color: #555;"></h3>
+            
+            <div class="form-group">
+                <label>Passenger Name</label>
+                <input type="text" id="pass-name" placeholder="Enter Full Name">
+            </div>
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="pass-age" placeholder="Enter Age">
+            </div>
+            <button class="btn" onclick="confirmBooking()">Confirm Booking</button>
+        </div>
+    </div>
+
+    <!-- 4. My Bookings Page -->
+    <div id="my-bookings-page" class="page">
+        <div class="card">
+            <h2>My Bookings</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>PNR</th>
+                        <th>Passenger Name</th>
+                        <th>Train</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="bookings-list">
+                    <!-- Bookings injected here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5. Admin Page -->
+    <div id="admin-page" class="page">
+        <div class="card">
+            <h2>Admin Dashboard - All Trains</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Train No</th>
+                        <th>Name</th>
+                        <th>Source</th>
+                        <th>Destination</th>
+                        <th>Fare</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-trains-list">
+                    <!-- Admin trains injected here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Sample Database (Simulated in Memory) ---
+        const trains = [
+            { id: "12951", name: "Rajdhani Express", source: "Delhi", dest: "Mumbai", time: "16:30", seats: 120, fare: 2500 },
+            { id: "12004", name: "Shatabdi Express", source: "Delhi", dest: "Lucknow", time: "06:10", seats: 45, fare: 1200 },
+            { id: "12628", name: "Karnataka Exp", source: "Delhi", dest: "Bangalore", time: "20:15", seats: 200, fare: 1800 },
+            { id: "12239", name: "Duronto Express", source: "Mumbai", dest: "Jaipur", time: "23:15", seats: 80, fare: 1500 }
+        ];
+
+        let bookings = [];
+        let currentBookingTrain = null;
+
+        // --- 2. Navigation Function ---
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active-page');
+            });
+            document.getElementById(pageId).classList.add('active-page');
+            
+            // Refresh data when opening specific pages
+            if(pageId === 'admin-page') loadAdminTrains();
+            if(pageId === 'my-bookings-page') loadMyBookings();
+        }
+
+        // --- 3. Search Function ---
+        function searchTrains() {
+            const src = document.getElementById('source').value.toLowerCase();
+            const dest = document.getElementById('dest').value.toLowerCase();
+            const resultsTbody = document.getElementById('train-results');
+            
+            resultsTbody.innerHTML = ""; // Clear old results
+
+            const filteredTrains = trains.filter(t => 
+                (src === "" || t.source.toLowerCase().includes(src)) && 
+                (dest === "" || t.dest.toLowerCase().includes(dest))
+            );
+
+            if (filteredTrains.length === 0) {
+                resultsTbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No trains found. Try Delhi to Mumbai.</td></tr>";
+            } else {
+                filteredTrains.forEach(train => {
+                    const row = `<tr>
+                        <td>${train.id}</td>
+                        <td>${train.name}</td>
+                        <td>${train.time}</td>
+                        <td>${train.seats}</td>
+                        <td>₹${train.fare}</td>
+                        <td><button class="book-btn" onclick="startBooking('${train.id}')">Book</button></td>
+                    </tr>`;
+                    resultsTbody.innerHTML += row;
+                });
+            }
+            
+            document.getElementById('search-results-card').style.display = 'block';
+        }
+
+        // --- 4. Booking Functions ---
+        function startBooking(trainId) {
+            currentBookingTrain = trains.find(t => t.id === trainId);
+            document.getElementById('booking-train-name').innerText = `Booking for: ${currentBookingTrain.name} (${currentBookingTrain.source} to ${currentBookingTrain.dest})`;
+            document.getElementById('booking-alert').style.display = 'none';
+            document.getElementById('pass-name').value = '';
+            document.getElementById('pass-age').value = '';
+            showPage('booking-page');
+        }
+
+        function confirmBooking() {
+            const name = document.getElementById('pass-name').value;
+            const age = document.getElementById('pass-age').value;
+
+            if (name === "" || age === "") {
+                alert("Please fill all details!");
+                return;
+            }
+
+            // Generate Random PNR
+            const pnr = Math.floor(1000000000 + Math.random() * 9000000000);
+            
+            // Save to "Database"
+            bookings.push({
+                pnr: pnr,
+                name: name,
+                trainName: currentBookingTrain.name,
+                status: "Confirmed"
+            });
+
+            // Update UI
+            document.getElementById('pnr-display').innerText = pnr;
+            document.getElementById('booking-alert').style.display = 'block';
+            
+            // Reduce seats
+            currentBookingTrain.seats -= 1;
+        }
+
+        // --- 5. Display Bookings ---
+        function loadMyBookings() {
+            const tbody = document.getElementById('bookings-list');
+            tbody.innerHTML = "";
+            
+            if (bookings.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No bookings found.</td></tr>";
+                return;
+            }
+
+            bookings.forEach(b => {
+                tbody.innerHTML += `<tr>
+                    <td><strong>${b.pnr}</strong></td>
+                    <td>${b.name}</td>
+                    <td>${b.trainName}</td>
+                    <td style="color: green; font-weight: bold;">${b.status}</td>
+                </tr>`;
+            });
+        }
+
+        // --- 6. Admin Functions ---
+        function loadAdminTrains() {
+            const tbody = document.getElementById('admin-trains-list');
+            tbody.innerHTML = "";
+            
+            trains.forEach(t => {
+                tbody.innerHTML += `<tr>
+                    <td>${t.id}</td>
+                    <td>${t.name}</td>
+                    <td>${t.source}</td>
+                    <td>${t.dest}</td>
+                    <td>₹${t.fare}</td>
+                </tr>`;
+            });
+        }
+    </script>
+</body>
+</html>
